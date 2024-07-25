@@ -41,29 +41,38 @@ const App = () => {
       return;
     }
 
-    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      console.log('getUserMedia success');
-      recorder.current = new RecordRTC(stream, {
-        type: 'audio',
-        mimeType: 'audio/wav',
-        recorderType: StereoAudioRecorder,
-        desiredSampRate: 16000, // Set the sample rate to 16 kHz
-      });
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        console.log('getUserMedia success');
+        recorder.current = new RecordRTC(stream, {
+          type: 'audio',
+          mimeType: 'audio/wav',
+          recorderType: StereoAudioRecorder,
+          desiredSampRate: 16000, // Set the sample rate to 16 kHz
+        });
 
-      recorder.current.startRecording();
-      setIsRecording(true);
-      wavesurferRef.current.empty();
-      toast.info('Recording started');
-    }).catch((e) => {
-      console.error('getUserMedia error:', e);
-      toast.error('Failed to start recording');
-    });
+        recorder.current.startRecording();
+        setIsRecording(true);
+        wavesurferRef.current.empty();
+        toast.info('Recording started');
+      })
+      .catch((e) => {
+        console.error('getUserMedia error:', e);
+
+        // Handle permission denied error
+        if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+          toast.error('Permission to access microphone was denied');
+        } else {
+          toast.error('Failed to start recording');
+        }
+      });
   };
 
   const stopRecording = () => {
     recorder.current.stopRecording(async () => {
       const originalBlob = recorder.current.getBlob();
-      
+
       // Convert to 16 kHz if necessary
       const convertedBlob = await convertTo16kHz(originalBlob);
 
@@ -144,7 +153,7 @@ const App = () => {
       toast.info('Transcribing...');
       const response = await fetch('http://82.217.100.245:8080/inference', {
         method: 'POST',
-        body: formData
+        body: formData,
       });
 
       if (!response.ok) {
@@ -182,14 +191,14 @@ const App = () => {
   return (
     <Container>
       <ToastContainer />
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          height: '100vh', 
-          textAlign: 'center' 
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          textAlign: 'center',
         }}
       >
         <Typography variant="h4" component="h1" gutterBottom>
