@@ -35,12 +35,14 @@ const App = () => {
   }, []);
 
   const startRecording = () => {
+    console.log('startRecording called');
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       toast.error('Your browser does not support audio recording');
       return;
     }
 
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      console.log('getUserMedia success');
       recorder.current = new RecordRTC(stream, {
         type: 'audio',
         mimeType: 'audio/wav',
@@ -53,7 +55,7 @@ const App = () => {
       wavesurferRef.current.empty();
       toast.info('Recording started');
     }).catch((e) => {
-      console.error(e);
+      console.error('getUserMedia error:', e);
       toast.error('Failed to start recording');
     });
   };
